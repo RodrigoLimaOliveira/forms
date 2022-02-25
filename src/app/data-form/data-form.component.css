@@ -1,0 +1,11 @@
+.container {
+  margin-top: 20px;
+}
+
+input, label {
+  margin-bottom: 10px;
+}
+
+button {
+  margin-right: 20px;
+}
