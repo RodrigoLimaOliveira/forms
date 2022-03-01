@@ -1,8 +1,11 @@
+import { ConsultaCepService } from './../services/consultaCepService';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { EstadosBr } from './../models/estadosBr';
 import { DropboxService } from './../services/dropbox.service';
+import { Observable } from 'rxjs';
+import { CidadesBr } from '../models/cidadesBr';
 
 @Component({
   selector: 'app-data-form',
@@ -12,14 +15,13 @@ import { DropboxService } from './../services/dropbox.service';
 export class DataFormComponent implements OnInit {
   formulario: FormGroup;
   urlCep = "https://viacep.com.br/ws/";
-  estados: EstadosBr[];
+  estados: Observable<EstadosBr[]>;
+  
+  constructor(private formBuilder: FormBuilder, private http: HttpClient, private dropboxService: DropboxService, private cepService: ConsultaCepService) {}
 
-  constructor(private formBuilder: FormBuilder, private http: HttpClient, private dropboxService: DropboxService) {}
-
-  ngOnInit(): void {
-    this.estados = [];
-    this.dropboxService.getEstadosBr().subscribe(dados => {this.estados.push; console.log(dados)}); /* verificar na internet */
-
+  ngOnInit() {
+    this.estados = this.dropboxService.getEstadosBr();
+    // this.dropboxService.getEstadosBr().subscribe(dados => {this.estados = dados; console.log(dados)});
     // this.formulario = new FormGroup({
     //   nome: new FormControl(null),
     //   email: new FormControl(null),
@@ -50,16 +52,11 @@ export class DataFormComponent implements OnInit {
   consultarCep() {
 
     let cep = this.formulario.get('endereco.cep')?.value;
-
     // Nova variável "cep" somente com dígitos.
     cep = cep.replace(/\D/g, '');
     // Verifica se campo cep possui valor informado.
-    if(cep != ""){
-      // Expressão regular para validar o CEP.
-      const validaCep = /^[0-9]{8}$/;
-      if(validaCep.test(cep)){
-        this.http.get(`${this.urlCep}${cep}/json`).subscribe(dados => this.preencherCampos(dados));
-      }
+    if(cep !== "" && cep != null){
+      this.cepService.consultarCep(cep).subscribe(dados => this.preencherCampos(dados));
     }
   }
 
